@@ -1,0 +1,24 @@
+body {
+  margin: 0;
+  padding: 0;
+  background: #000;
+}
+
+h1 {
+  font-size: 2em;
+  text-align: center;
+  color: #fff;
+  margin: 0 auto;
+  padding: 0;
+}
+
+#snake {
+  background-color: green;
+  border: 10px solid #000;
+  margin: 0 auto;
+  /* height: calc(100vh - 142px);
+  width: calc(100vw - 142px); */
+  height: 800px;
+  width: 800px;
+  display: block;
+}
