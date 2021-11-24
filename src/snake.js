@@ -10,8 +10,8 @@ let context = snakeGame.getContext("2d");
 
 const CANVAS_WIDTH = snakeGame.clientWidth;
 const CANVAS_HEIGHT = snakeGame.clientHeight;
-const NUMBER_OF_COLUMNS = 50;
-const NUMBER_OF_ROWS = 50;
+const NUMBER_OF_COLUMNS = 30;
+const NUMBER_OF_ROWS = 30;
 const BLOCK_WIDTH = CANVAS_WIDTH / NUMBER_OF_COLUMNS;
 const BLOCK_HEIGHT = CANVAS_HEIGHT / NUMBER_OF_ROWS;
 const BOARD_MAX_WIDTH = CANVAS_WIDTH - BLOCK_WIDTH * 2;
@@ -186,20 +186,28 @@ function createSnack(snake = []) {
 
 function occurrenceCollision(snake = []) {
   let head = snake[0];
+  const headPositionX = Math.trunc(Math.round(head.posX));
+  const headPositionY = Math.trunc(Math.round(head.posY));
+  const wallTop = Math.trunc(Math.round(BLOCK_WIDTH));
+  const wallLeft = Math.trunc(Math.round(BLOCK_HEIGHT));
+  const wallBottom = Math.trunc(Math.round(BOARD_MAX_WIDTH));
+  const wallRight = Math.trunc(Math.round(BOARD_MAX_HEIGHT));
 
-  if (
-    head.posX < BLOCK_WIDTH ||
-    head.posY < BLOCK_HEIGHT ||
-    head.posX > BOARD_MAX_WIDTH ||
-    head.posY > BOARD_MAX_HEIGHT
-  ) {
-    console.log("collision wall", head);
-    console.log({ BLOCK_WIDTH, BLOCK_HEIGHT });
-    console.log({ BOARD_MAX_WIDTH, BOARD_MAX_HEIGHT });
+  if (headPositionX < wallTop || headPositionY < wallLeft || headPositionX > wallBottom || headPositionY > wallRight) {
     return true;
   }
 
-  return false;
+  return snakeCollision(snake);
+}
+
+function snakeCollision(snake = []) {
+  if (snake.length < 4) return false;
+  const head = snake[0];
+  for (var i = 1; i < snake.length; i++) {
+    if (head.posX === snake[i].posX && head.posY === snake[i].posY) {
+      return true;
+    }
+  }
 }
 
 // Actions
