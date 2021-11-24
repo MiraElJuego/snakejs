@@ -10,10 +10,13 @@ let context = snakeGame.getContext("2d");
 
 const CANVAS_WIDTH = snakeGame.clientWidth;
 const CANVAS_HEIGHT = snakeGame.clientHeight;
-const NUMBER_OF_COLUMNS = 60;
-const NUMBER_OF_ROWS = 60;
+const NUMBER_OF_COLUMNS = 50;
+const NUMBER_OF_ROWS = 50;
 const BLOCK_WIDTH = CANVAS_WIDTH / NUMBER_OF_COLUMNS;
 const BLOCK_HEIGHT = CANVAS_HEIGHT / NUMBER_OF_ROWS;
+const BOARD_MAX_WIDTH = CANVAS_WIDTH - BLOCK_WIDTH * 2;
+const BOARD_MAX_HEIGHT = CANVAS_HEIGHT - BLOCK_HEIGHT * 2;
+const FPS = 15;
 const DIRECTIONS = {
   UP: 1,
   DOWN: 2,
@@ -26,15 +29,10 @@ const DIRECTIONS = {
 let gameInstance;
 let currentDirection = DIRECTIONS.RIGHT;
 let futureDirection = currentDirection;
-let speed = 1000 / 20;
+let speed = 1000 / FPS;
 let snake = [
   {
     posX: BLOCK_WIDTH * 2,
-    posY: BLOCK_HEIGHT,
-    color: "red",
-  },
-  {
-    posX: BLOCK_WIDTH,
     posY: BLOCK_HEIGHT,
     color: "red",
   },
@@ -54,7 +52,7 @@ function drawWalls(context) {
   context.beginPath();
   context.fillStyle = "black";
   context.lineWidth = 2;
-  context.rect(BLOCK_WIDTH, BLOCK_HEIGHT, CANVAS_WIDTH - BLOCK_WIDTH * 2, CANVAS_HEIGHT - BLOCK_HEIGHT * 2);
+  context.rect(BLOCK_WIDTH, BLOCK_HEIGHT, BOARD_MAX_WIDTH, BOARD_MAX_HEIGHT);
   context.stroke();
 
   //drawGrid(context);
@@ -154,6 +152,11 @@ function gameLoop() {
     snack = createSnack(snake);
   }
 
+  if (occurrenceCollision(snake)) {
+    clearInterval(gameInstance);
+    return;
+  }
+
   context.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
   drawWalls(context);
   drawSnake(context, snake);
@@ -177,6 +180,26 @@ function createSnack(snake = []) {
     }
     return snack;
   }
+}
+
+// Colision detection
+
+function occurrenceCollision(snake = []) {
+  let head = snake[0];
+
+  if (
+    head.posX < BLOCK_WIDTH ||
+    head.posY < BLOCK_HEIGHT ||
+    head.posX > BOARD_MAX_WIDTH ||
+    head.posY > BOARD_MAX_HEIGHT
+  ) {
+    console.log("collision wall", head);
+    console.log({ BLOCK_WIDTH, BLOCK_HEIGHT });
+    console.log({ BOARD_MAX_WIDTH, BOARD_MAX_HEIGHT });
+    return true;
+  }
+
+  return false;
 }
 
 // Actions
