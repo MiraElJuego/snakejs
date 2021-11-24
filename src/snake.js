@@ -1,19 +1,27 @@
 console.log("snake.js");
 
+// Board of the game
+
 let snakeGame = document.getElementById("snake");
 
 let context = snakeGame.getContext("2d");
 
+// Constants
+
 const CANVAS_WIDTH = snakeGame.clientWidth;
 const CANVAS_HEIGHT = snakeGame.clientHeight;
-const BLOCK_WIDTH = CANVAS_WIDTH / 60;
-const BLOCK_HEIGHT = CANVAS_HEIGHT / 60;
+const NUMBER_OF_COLUMNS = 60;
+const NUMBER_OF_ROWS = 60;
+const BLOCK_WIDTH = CANVAS_WIDTH / NUMBER_OF_COLUMNS;
+const BLOCK_HEIGHT = CANVAS_HEIGHT / NUMBER_OF_ROWS;
 const DIRECTIONS = {
   UP: 1,
   DOWN: 2,
   LEFT: 3,
   RIGHT: 4,
 };
+
+// Establish the initial state of the game
 
 let gameInstance;
 let currentDirection = DIRECTIONS.RIGHT;
@@ -36,8 +44,11 @@ let snake = [
     color: "red",
   },
 ];
+let snacks = [createSnack()];
 
 console.log(CANVAS_WIDTH, CANVAS_HEIGHT);
+
+// Functions to draw the grid, snack and snake in the game
 
 function drawGrid(context) {
   for (let x = BLOCK_WIDTH; x < CANVAS_WIDTH; x += BLOCK_WIDTH) {
@@ -55,14 +66,25 @@ function drawGrid(context) {
   }
 }
 
+function drawObject(context, object) {
+  context.beginPath();
+  context.fillStyle = object.color;
+  context.fillRect(object.posX, object.posY, BLOCK_WIDTH, BLOCK_HEIGHT);
+  context.stroke();
+}
+
 function drawSnake(context, snake) {
   for (let index = 0; index < snake.length; index++) {
-    context.beginPath();
-    context.fillStyle = snake[index].color;
-    context.fillRect(snake[index].posX, snake[index].posY, BLOCK_WIDTH, BLOCK_HEIGHT);
-    context.stroke();
+    drawObject(context, snake[index]);
   }
 }
+
+function drawSnack(context, snack) {
+  snack.color = "blue";
+  drawObject(context, snack);
+}
+
+// Functions to logic of the game
 
 function moveSnake(direction, snake) {
   let newHead = {
@@ -110,14 +132,41 @@ function gameLoop() {
   context.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
   drawGrid(context);
   drawSnake(context, snake);
+  drawSnack(context, snacks[0]);
 }
 
-drawGrid(context);
-drawSnake(context, snake);
+function createSnack() {
+  while (true) {
+    let snack = {
+      posX: Math.floor(Math.random() * NUMBER_OF_COLUMNS - 1) * BLOCK_WIDTH,
+      posY: Math.floor(Math.random() * NUMBER_OF_ROWS - 1) * BLOCK_HEIGHT,
+    };
+    let collision = false;
+
+    if (snake.some((block) => block.posX === snack.posX && block.posY === snack.posY)) {
+      collision = true;
+    }
+
+    if (collision) {
+      continue;
+    }
+    return snack;
+  }
+}
+
+// Actions
 
 document.addEventListener("keydown", function (event) {
   keydownCallback(event);
 });
+
+// Draw the initial state of the game
+
+drawGrid(context);
+drawSnake(context, snake);
+drawSnack(context, snacks[0]);
+
+// Start the game loop
 
 snakeGame.addEventListener("click", () => {
   if (gameInstance === undefined) {
