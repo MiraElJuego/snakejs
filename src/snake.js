@@ -3,6 +3,7 @@ console.log("snake.js");
 // Board of the game
 
 let snakeGame = document.getElementById("snake");
+let score = document.getElementById("score");
 
 let context = snakeGame.getContext("2d");
 
@@ -26,25 +27,13 @@ const DIRECTIONS = {
 
 // Establish the initial state of the game
 
+let points;
 let gameInstance;
-let currentDirection = DIRECTIONS.RIGHT;
-let futureDirection = currentDirection;
-let speed = 1000 / FPS;
-let snake = [
-  {
-    posX: BLOCK_WIDTH * 2,
-    posY: BLOCK_HEIGHT,
-    color: "red",
-  },
-  {
-    posX: BLOCK_WIDTH,
-    posY: BLOCK_HEIGHT,
-    color: "red",
-  },
-];
-let snack = createSnack();
-
-console.log(CANVAS_WIDTH, CANVAS_HEIGHT);
+let currentDirection;
+let futureDirection;
+let speed;
+let snake = [];
+let snack;
 
 // Functions to draw the grid, snack and snake in the game
 
@@ -90,6 +79,14 @@ function drawSnake(context, snake) {
 function drawSnack(context, snack) {
   snack.color = "blue";
   drawObject(context, snack);
+}
+
+function drawInstructions() {
+  context.font = "40px Arial";
+  context.textAlign = "center";
+  context.fillStyle = "black";
+  context.fillText("¡Click to start!", CANVAS_WIDTH / 2, CANVAS_HEIGHT / 3);
+  context.fillText("Use the arrow keys to move the snake", CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
 }
 
 // Functions to logic of the game
@@ -143,6 +140,15 @@ let keydownCallback = (event) => {
   }
 };
 
+function updateScore() {
+  score.innerHTML = points;
+}
+
+function incrementScore() {
+  points++;
+  updateScore();
+}
+
 function gameLoop() {
   let lastTail = moveSnake(futureDirection, snake);
   currentDirection = futureDirection;
@@ -150,10 +156,11 @@ function gameLoop() {
   if (snakeEatSnack(snake, snack)) {
     snake.push(lastTail);
     snack = createSnack(snake);
+    incrementScore();
   }
 
   if (occurrenceCollision(snake)) {
-    clearInterval(gameInstance);
+    gameOver();
     return;
   }
 
@@ -180,6 +187,36 @@ function createSnack(snake = []) {
     }
     return snack;
   }
+}
+
+function initializeGame() {
+  points = 0;
+  gameInstance;
+  currentDirection = DIRECTIONS.RIGHT;
+  futureDirection = currentDirection;
+  speed = 1000 / FPS;
+  snake = [
+    {
+      posX: BLOCK_WIDTH * 2,
+      posY: BLOCK_HEIGHT,
+      color: "red",
+    },
+    {
+      posX: BLOCK_WIDTH,
+      posY: BLOCK_HEIGHT,
+      color: "red",
+    },
+  ];
+  snack = createSnack();
+  updateScore();
+  gameInstance = setInterval(gameLoop, speed);
+}
+
+function gameOver() {
+  clearInterval(gameInstance);
+  gameInstance = undefined;
+  drawInstructions();
+  alert("Game Over your score: " + points);
 }
 
 // Colision detection
@@ -222,13 +259,12 @@ document.addEventListener("keydown", function (event) {
 // Draw the initial state of the game
 
 drawWalls(context);
-drawSnake(context, snake);
-drawSnack(context, snack);
+drawInstructions();
 
 // Start the game loop
 
 snakeGame.addEventListener("click", () => {
   if (gameInstance === undefined) {
-    gameInstance = setInterval(gameLoop, speed);
+    initializeGame();
   }
 });
