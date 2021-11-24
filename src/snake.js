@@ -26,29 +26,39 @@ const DIRECTIONS = {
 let gameInstance;
 let currentDirection = DIRECTIONS.RIGHT;
 let futureDirection = currentDirection;
-let speed = 1000 / 5;
+let speed = 1000 / 20;
 let snake = [
   {
     posX: BLOCK_WIDTH * 2,
-    posY: 0,
+    posY: BLOCK_HEIGHT,
     color: "red",
   },
   {
     posX: BLOCK_WIDTH,
-    posY: 0,
+    posY: BLOCK_HEIGHT,
     color: "red",
   },
   {
-    posX: 0,
-    posY: 0,
+    posX: BLOCK_WIDTH,
+    posY: BLOCK_HEIGHT,
     color: "red",
   },
 ];
-let snacks = [createSnack()];
+let snack = createSnack();
 
 console.log(CANVAS_WIDTH, CANVAS_HEIGHT);
 
 // Functions to draw the grid, snack and snake in the game
+
+function drawWalls(context) {
+  context.beginPath();
+  context.fillStyle = "black";
+  context.lineWidth = 2;
+  context.rect(BLOCK_WIDTH, BLOCK_HEIGHT, CANVAS_WIDTH - BLOCK_WIDTH * 2, CANVAS_HEIGHT - BLOCK_HEIGHT * 2);
+  context.stroke();
+
+  //drawGrid(context);
+}
 
 function drawGrid(context) {
   for (let x = BLOCK_WIDTH; x < CANVAS_WIDTH; x += BLOCK_WIDTH) {
@@ -109,7 +119,16 @@ function moveSnake(direction, snake) {
   }
 
   snake.unshift(newHead);
-  snake.pop();
+  return snake.pop();
+}
+
+function snakeEatSnack(snake, snack) {
+  const snakePositionX = Math.trunc(Math.round(snake[0].posX));
+  const snakePositionY = Math.trunc(Math.round(snake[0].posY));
+  const snackPositionX = Math.trunc(Math.round(snack.posX));
+  const snackPositionY = Math.trunc(Math.round(snack.posY));
+  // console.log({ snakePositionX, snakePositionY, snackPositionX, snackPositionY });
+  return snakePositionX === snackPositionX && snakePositionY === snackPositionY;
 }
 
 let keydownCallback = (event) => {
@@ -127,19 +146,25 @@ let keydownCallback = (event) => {
 };
 
 function gameLoop() {
-  moveSnake(futureDirection, snake);
+  let lastTail = moveSnake(futureDirection, snake);
   currentDirection = futureDirection;
+
+  if (snakeEatSnack(snake, snack)) {
+    snake.push(lastTail);
+    snack = createSnack(snake);
+  }
+
   context.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-  drawGrid(context);
+  drawWalls(context);
   drawSnake(context, snake);
-  drawSnack(context, snacks[0]);
+  drawSnack(context, snack);
 }
 
-function createSnack() {
+function createSnack(snake = []) {
   while (true) {
     let snack = {
-      posX: Math.floor(Math.random() * NUMBER_OF_COLUMNS - 1) * BLOCK_WIDTH,
-      posY: Math.floor(Math.random() * NUMBER_OF_ROWS - 1) * BLOCK_HEIGHT,
+      posX: Math.max(Math.floor(Math.random() * NUMBER_OF_COLUMNS - 1), 1) * BLOCK_WIDTH,
+      posY: Math.max(Math.floor(Math.random() * NUMBER_OF_ROWS - 1), 1) * BLOCK_HEIGHT,
     };
     let collision = false;
 
@@ -157,14 +182,17 @@ function createSnack() {
 // Actions
 
 document.addEventListener("keydown", function (event) {
+  if (event.code === "Space") {
+    clearInterval(gameInstance);
+  }
   keydownCallback(event);
 });
 
 // Draw the initial state of the game
 
-drawGrid(context);
+drawWalls(context);
 drawSnake(context, snake);
-drawSnack(context, snacks[0]);
+drawSnack(context, snack);
 
 // Start the game loop
 
