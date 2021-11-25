@@ -2,22 +2,27 @@ console.log("snake.js");
 
 // Board of the game
 
-let snakeGame = document.getElementById("snake");
 let score = document.getElementById("score");
-
+let boardContainer = document.getElementById("board-container");
+let bannerRotateDevice = document.getElementById("banner-vertical-device");
+let title = document.getElementById("title");
+let buttonCloseBanner = document.getElementById("close-banner");
+let snakeGame = document.getElementById("snake");
 let context = snakeGame.getContext("2d");
 
 // Constants
-
+const AUDIO_EAT_SNAKE = new Audio("../public/audio/snake-eat.wav");
 const CANVAS_WIDTH = snakeGame.clientWidth;
 const CANVAS_HEIGHT = snakeGame.clientHeight;
+const HIDDEN_CLASS = "hidden";
+const GAME_OVER_ANIMATION = "wobble-hor-bottom";
 const NUMBER_OF_COLUMNS = 30;
 const NUMBER_OF_ROWS = 30;
 const BLOCK_WIDTH = CANVAS_WIDTH / NUMBER_OF_COLUMNS;
 const BLOCK_HEIGHT = CANVAS_HEIGHT / NUMBER_OF_ROWS;
 const BOARD_MAX_WIDTH = CANVAS_WIDTH - BLOCK_WIDTH * 2;
 const BOARD_MAX_HEIGHT = CANVAS_HEIGHT - BLOCK_HEIGHT * 2;
-const FPS = 15;
+const FPS = 10;
 const DIRECTIONS = {
   UP: 1,
   DOWN: 2,
@@ -147,6 +152,7 @@ function updateScore() {
 function incrementScore() {
   points++;
   updateScore();
+  AUDIO_EAT_SNAKE.play();
 }
 
 function gameLoop() {
@@ -209,6 +215,7 @@ function initializeGame() {
   ];
   snack = createSnack();
   updateScore();
+  boardContainer.classList.remove(GAME_OVER_ANIMATION);
   gameInstance = setInterval(gameLoop, speed);
 }
 
@@ -216,7 +223,7 @@ function gameOver() {
   clearInterval(gameInstance);
   gameInstance = undefined;
   drawInstructions();
-  alert("Game Over your score: " + points);
+  boardContainer.classList.add(GAME_OVER_ANIMATION);
 }
 
 // Colision detection
@@ -247,6 +254,20 @@ function snakeCollision(snake = []) {
   }
 }
 
+// Responsive
+
+window.addEventListener("orientationchange", () => {
+  if (screen.orientation.angle === 90 || screen.orientation.angle === -90) {
+    title.classList.add(HIDDEN_CLASS);
+    bannerRotateDevice.classList.remove(HIDDEN_CLASS);
+  }
+});
+
+buttonCloseBanner.addEventListener("click", () => {
+  title.classList.remove(HIDDEN_CLASS);
+  bannerRotateDevice.classList.add(HIDDEN_CLASS);
+});
+
 // Actions
 
 document.addEventListener("keydown", function (event) {
@@ -266,5 +287,16 @@ drawInstructions();
 snakeGame.addEventListener("click", () => {
   if (gameInstance === undefined) {
     initializeGame();
+    return;
+  }
+
+  if (currentDirection === DIRECTIONS.DOWN) {
+    futureDirection = DIRECTIONS.LEFT;
+  } else if (currentDirection === DIRECTIONS.LEFT) {
+    futureDirection = DIRECTIONS.UP;
+  } else if (currentDirection === DIRECTIONS.UP) {
+    futureDirection = DIRECTIONS.RIGHT;
+  } else if (currentDirection === DIRECTIONS.RIGHT) {
+    futureDirection = DIRECTIONS.DOWN;
   }
 });
